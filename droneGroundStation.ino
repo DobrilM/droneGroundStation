@@ -15,7 +15,7 @@ struct message {
   int16_t counter;
   int16_t temp;
   int16_t alt; 
-  int16_t pressure;
+  int32_t pressure;
 };
 
 message recievedMessage;
@@ -62,12 +62,12 @@ void print_telemetry_packet_geiger(const uint8_t from, const uint8_t to, const i
   static char message[220];
   const int packet = pkt.value;
   const int counter = pkt.counter;
-  const float temp = pkt.temp/100;
-  const float alt = pkt.alt/100;
-  const float pressure = pkt.pressure/100;
+  float temp = pkt.temp/100.0;
+  float alt = pkt.alt/100.0;
+  float pressure = pkt.pressure/100.0;
 
   // Build ASCII line to print
-  sprintf(message, "%i;%i;%.2f;%.2f;%.2f",
+  sprintf(message, "%i; count = %i;temp = %.2f *C; pressure = %.2f; alt = %.2f",
   packet,
   counter,
   temp,
