@@ -13,6 +13,9 @@ RH_RF95 rf95(RFM95_CS, RFM95_INT);
 struct message {
   uint8_t value;
   int16_t counter;
+  int16_t temp;
+  int16_t alt; 
+  int16_t pressure;
 };
 
 message recievedMessage;
@@ -59,11 +62,17 @@ void print_telemetry_packet_geiger(const uint8_t from, const uint8_t to, const i
   static char message[220];
   const int packet = pkt.value;
   const int counter = pkt.counter;
+  const float temp = pkt.temp/100;
+  const float alt = pkt.alt/100;
+  const float pressure = pkt.pressure/100;
 
   // Build ASCII line to print
-  sprintf(message, "%i;%i",
+  sprintf(message, "%i;%i;%.2f;%.2f;%.2f",
   packet,
-  counter
+  counter,
+  temp,
+  pressure,
+  alt
   );
 
   // Send to USB / Serial port
