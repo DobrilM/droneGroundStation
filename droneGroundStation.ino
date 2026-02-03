@@ -6,18 +6,23 @@
 #define RFM95_RST  4
 #define RFM95_INT  3
 
-#define RF95_FREQ 433.1
+#define RF95_FREQ 433.4
 
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
 struct message {
-  uint8_t value;
-  int16_t counter;
   int16_t temp;
   int16_t alt; 
   int32_t pressure;
+  uint8_t fix;
+  uint8_t numSat;
+  uint32_t latitude;
+  uint32_t longitude;
+  int16_t altGPS;
+  uint16_t battVolt;
+  uint8_t navStat;
+  uint8_t status;
 };
-
 message recievedMessage;
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
@@ -60,19 +65,31 @@ void print_telemetry_packet_geiger(const uint8_t from, const uint8_t to, const i
   Serial.print(';');
 
   static char message[220];
-  const int packet = pkt.value;
-  const int counter = pkt.counter;
   float temp = pkt.temp/100.0;
   float alt = pkt.alt/100.0;
   float pressure = pkt.pressure/100.0;
+  int fix = pkt.fix;
+  int numSat = pkt.numSat;
+  float latitude = pkt.latitude / 1e7f;
+  float longitude = pkt.longitude / 1e7f;
+  float altGPS = pkt.altGPS / 100.0;
+  int battVolt = pkt.battVolt;
+  int navStat = pkt.navStat;
+  int status = pkt.status;
 
   // Build ASCII line to print
-  sprintf(message, "%i; count = %i;temp = %.2f *C; pressure = %.2f; alt = %.2f",
-  packet,
-  counter,
+  sprintf(message, "%i; count = %i;temp = %.2f *C; pressure = %.2f; alt = %.2f; latitude = %.7f; longitude = %.7f; altGps = %.2f; battVolt = %i; navStat = %i; status = %i",
   temp,
   pressure,
-  alt
+  alt,
+  fix,
+  numSat,
+  latitude,
+  longitude,
+  altGPS,
+  battVolt,
+  navStat,
+  status
   );
 
   // Send to USB / Serial port
