@@ -10,26 +10,11 @@
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
 struct message {
-
+  uint8_t value;
+  int16_t counter;
   int16_t temp;
   int16_t alt; 
   int32_t pressure;
-
-  uint8_t fix;
-  uint8_t numSat;
-  uint32_t rawLat;
-  uint32_t rawLong;
-  int16_t gpsAlt;
-
-  uint16_t battVolt;
-
-  uint8_t navMode;
-  uint8_t navState;
-  uint8_t navError;
-
-  uint8_t state;
-
-  uint8_t geozoneStatus;
 };
 
 message recievedMessage;
@@ -74,43 +59,20 @@ void print_telemetry_packet_geiger(const uint8_t from, const uint8_t to, const i
   Serial.print(';');
 
   static char message[220];
+  const int packet = pkt.value;
+  const int counter = pkt.counter;
   float temp = pkt.temp/100.0;
   float alt = pkt.alt/100.0;
   float pressure = pkt.pressure/100.0;
-  int fix = pkt.fix;
-  int numSat =pkt.numSat;
-  float latitude = pkt.rawLat/1e7f;
-  float longitude = pkt.rawLong/1e7f;
-  float altGPS = pkt.gpsAlt/100.0;
-  float battVolt = pkt.battVolt/100.0;
-  int navMode =pkt.navMode;
-    int navState =pkt.navState;
-      int navError =pkt.navError;
-        int state =pkt.state;
-          int geozoneStatus =pkt.geozoneStatus;
+
   // Build ASCII line to print
-  sprintf(message, "temp = %.2f *C; pressure = %.2f; alt = %.2f; fix = %i; numSat = %i; lat = %.7f; long = %.7f; altGPS = %.2f; battvolt = %.2f; navMode = %i; navState = %i; navError = %i; state = %i; geozoneState = %i;",
+  sprintf(message, "%i; count = %i;temp = %.2f *C; pressure = %.2f; alt = %.2f",
+  packet,
+  counter,
   temp,
   pressure,
-  alt,
-  fix,
-  numSat,
-  latitude,
-  longitude,
-  altGPS,
-  battVolt,
-  navMode,
-  navState,
-  navError,
-  state,
-  geozoneStatus
+  alt
   );
-  /*float accX = pkt.accX/100.0;
-  float accY = pkt.accY/100.0;
-  float accZ = pkt.accZ/100.0;
-  float accTot = pkt.accTot/100.0;
-  float accMax = pkt.accMax/100.0;
-  sprintf(message, "accX = %.2f; accY = %.2f; accZ = %.2f; accTot = %.2f; accMax = %.2f", accX, accY, accZ, accTot, accMax);*/
 
   // Send to USB / Serial port
     Serial.println(message);
