@@ -11,18 +11,35 @@
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
 struct message {
+
+  uint32_t packetCounter; //IMPLEMENT!!!!
+
   int16_t temp;
   int16_t alt; 
   int32_t pressure;
+
   uint8_t fix;
   uint8_t numSat;
-  uint32_t latitude;
-  uint32_t longitude;
-  int16_t altGPS;
+  uint32_t rawLat;
+  uint32_t rawLong;
+  int16_t gpsAlt;
+
   uint16_t battVolt;
-  uint8_t navStat;
-  uint8_t status;
+
+  int16_t accX;
+  int16_t accY;
+  int16_t accZ;
+
+
+  uint8_t navMode;
+  uint8_t navState;
+  uint8_t navError;
+
+  uint8_t state;
+
+  uint8_t geozoneStatus;
 };
+
 message recievedMessage;
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
@@ -65,31 +82,33 @@ void print_telemetry_packet_geiger(const uint8_t from, const uint8_t to, const i
   Serial.print(';');
 
   static char message[220];
+  uint32_t packetCounter = pkt.packetCounter;
   float temp = pkt.temp/100.0;
   float alt = pkt.alt/100.0;
   float pressure = pkt.pressure/100.0;
-  int fix = pkt.fix;
-  int numSat = pkt.numSat;
-  float latitude = pkt.latitude / 1e7f;
-  float longitude = pkt.longitude / 1e7f;
-  float altGPS = pkt.altGPS / 100.0;
-  int battVolt = pkt.battVolt;
-  int navStat = pkt.navStat;
-  int status = pkt.status;
+
+  float accX = pkt.accX/100.0;
+  float accY = pkt.accY/100.0;
+  float accZ = pkt.accZ/100.0;
+
+  uint8_t fix = pkt.fix;
+  uint8_t numSat = pkt.numSat;
+  uint32_t rawLat = pkt.rawLat;
+  uint32_t rawLong = pkt.rawLong; 
+  float latitude = rawLat / 1e7f;
+  float longitude = rawLong/ 1e7f;
+  int16_t altGPS = pkt.gpsAlt;
+
+  uint16_t battVolt = pkt.battVolt;
+  uint8_t navMode = pkt.navMode;
+  uint8_t navState = pkt.navState;
+  uint8_t navError = pkt.navError;
+  uint8_t state = pkt.state;
+  uint8_t geozoneState = pkt.geozoneStatus;
 
   // Build ASCII line to print
-  sprintf(message, "%i; count = %i;temp = %.2f *C; pressure = %.2f; alt = %.2f; latitude = %.7f; longitude = %.7f; altGps = %.2f; battVolt = %i; navStat = %i; status = %i",
-  temp,
-  pressure,
-  alt,
-  fix,
-  numSat,
-  latitude,
-  longitude,
-  altGPS,
-  battVolt,
-  navStat,
-  status
+  sprintf(message, "%u;%.2f;%.2f;%.2f;%.2f;%.2f;%.2f;%u;%u;%u;%u;%.7f;%.7f;%i;%u;%u;%u;%u;%u;%u", 
+  packetCounter, temp, pressure, alt, accX, accY, accZ, fix, numSat, rawLat, rawLong, latitude, longitude, altGPS, battVolt, navMode, navState, navError, geozoneState, state
   );
 
   // Send to USB / Serial port
