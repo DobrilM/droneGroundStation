@@ -72,7 +72,67 @@ void setup() {
   rf95.setTxPower(23, false);
 }
 
-void print_telemetry_packet_geiger(const uint8_t from, const uint8_t to, const int32_t rssi, message pkt) {
+const char* stateToCArr(int value) {
+    switch (value) {
+        case 0:    return "STANDBY";
+        case 1:  return "ASCENDING";
+        case 2: return "DESCENDING";
+        case 3: return "WAITFORFIX";
+        case 4:       return "RTWP";
+        case 5:   return "FAILSAFE";
+        default:         return "ERROR";
+    }
+}
+
+const char* navModeToCArr(int value) {
+    switch (value) {
+        case 0: return "NONE";
+        case 1: return "HOLD";
+        case 2: return "RTH";
+        case 3: return "NAV";
+        case 15: return "EMERG";
+        default: return "ERROR";
+    }
+}
+const char* navStateToCArr(int value) {
+    switch (value) {
+        case 0: return "NONE";
+        case 1: return "RTH_START";
+        case 2: return "RTH_ENROUTE";
+        case 3: return "HOLD_INFINITE";
+        case 4: return "HOLD_TIMED";
+        case 5: return "WP_ENROUTE";
+        case 6: return "PROCESS_NEXT";
+        case 7: return "DO_JUMP";
+        case 8: return "LAND_START";
+        case 9: return "LAND_IN_PROGRESS";
+        case 10: return "LANDED";
+        case 11: return "LAND_SETTLE";
+        case 12: return "LAND_START_DESCENT";
+        default: return "ERROR";
+    }
+}
+
+const char* navErrorToCArr(int value) {
+    switch (value) {
+        case 0: return "NONE";
+        case 1: return "TOOFAR";
+        case 2: return "SPOILED_GPS";
+        case 3: return "WP_CRC";
+        case 4: return "FINISH";
+        case 5: return "TIMEWAIT";
+        case 6: return "INVALID_JUMP";
+        case 7: return "INVALID_DATA";
+        case 8: return "WAIT_FOR_RTH_ALT";
+        case 9: return "GPS_FIX_LOST";
+        case 10: return "DISARMED";
+        case 11: return "LANDING";
+        default:return "ERROR";
+    }
+}
+
+
+void printTelemetryPacket(const uint8_t from, const uint8_t to, const int32_t rssi, message pkt) {
   Serial.print("# ");
   Serial.print(from, HEX);
   Serial.print(';');
@@ -81,7 +141,6 @@ void print_telemetry_packet_geiger(const uint8_t from, const uint8_t to, const i
   Serial.print(rssi);
   Serial.print(';');
 
-  static char message[220];
   uint32_t packetCounter = pkt.packetCounter;
   float temp = pkt.temp/100.0;
   float alt = pkt.alt/100.0;
@@ -106,13 +165,32 @@ void print_telemetry_packet_geiger(const uint8_t from, const uint8_t to, const i
   uint8_t state = pkt.state;
   uint8_t geozoneState = pkt.geozoneStatus;
 
-  // Build ASCII line to print
-  sprintf(message, "%u;%.2f;%.2f;%.2f;%.2f;%.2f;%.2f;%u;%u;%u;%u;%.7f;%.7f;%i;%u;%u;%u;%u;%u;%u", 
-  packetCounter, temp, pressure, alt, accX, accY, accZ, fix, numSat, rawLat, rawLong, latitude, longitude, altGPS, battVolt, navMode, navState, navError, geozoneState, state
-  );
+  //message creation
+  static char message[220];
+  sprintf(message, 
+  "packetCounter=%u;temp=%.2f;pressure=%.2f;alt=%.2f;accX=%.2f;accY=%.2f;accZ=%.2f;fix=%u;numSat=%u;rawLat=%u;rawLong=%u;latitude=%.7f;longitude=%.7f;altGPS=%i;battVolt=%u;geozoneState=%u;",
+  packetCounter, 
+  temp, pressure, alt, 
+  accX, accY, accZ, 
+  fix, numSat, rawLat, rawLong, latitude, longitude, altGPS, 
+  battVolt, 
+  navMode, navState, navError, 
+  geozoneState, 
+  state);
 
-  // Send to USB / Serial port
-    Serial.println(message);
+  Serial.println(message);
+
+  Serial.print("current mode = ");
+  Serial.print(stateToCArr(state));
+  Serial.print(";");
+  Serial.print("current FC mode =");
+  Serial.print(navModeToCArr(navMode));
+  Serial.print(";");
+  Serial.print("current FC state = ");
+  Serial.print(navStateToCArr(navState));
+  Serial.print(";");
+  Serial.print("FC error = ");
+  Serial.println(navErrorToCArr(navError));
 }
 
 void loop() {
@@ -126,7 +204,7 @@ void loop() {
       const uint8_t to = rf95.headerTo();
       const int32_t rssi = rf95.lastRssi();
       memcpy(&recievedMessage, buf, sizeof(recievedMessage));
-      print_telemetry_packet_geiger(from, to, rssi, recievedMessage);
+      printTelemetryPacket(from, to, rssi, recievedMessage);
     } else {
       Serial.println("Receive failed");
     }
