@@ -168,7 +168,7 @@ void printTelemetryPacket(const uint8_t from, const uint8_t to, const int32_t rs
   //message creation
   static char message[220];
   sprintf(message, 
-  "packetCounter=%u;temp=%.2f;pressure=%.2f;alt=%.2f;accX=%.2f;accY=%.2f;accZ=%.2f;fix=%u;numSat=%u;rawLat=%u;rawLong=%u;latitude=%.7f;longitude=%.7f;altGPS=%i;battVolt=%u;geozoneState=%u;",
+  "packetCounter=%i;temp=%.2f;pressure=%.2f;alt=%.2f;accX=%.2f;accY=%.2f;accZ=%.2f;fix=%u;numSat=%u;rawLat=%u;rawLong=%u;latitude=%.7f;longitude=%.7f;altGPS=%i;battVolt=%u;geozoneState=%u;",
   packetCounter, 
   temp, pressure, alt, 
   accX, accY, accZ, 
